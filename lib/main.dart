@@ -13,7 +13,7 @@ import 'package:loginchefmenu/src/ui/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  BlocSupervisor.delegate = SimpleBlocDelegate();
+  Bloc.observer = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
   runApp(
     BlocProvider(

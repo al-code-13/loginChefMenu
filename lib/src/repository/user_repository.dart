@@ -71,7 +71,7 @@ class UserRepository {
             //En caso de que el email este vinculado, validar que este vinculado con google
             if (value.contains("google.com")) {
               //En caso de que sea exitoso (Se debe informar al usuario) todo
-              await _auth.signInWithCredential(credential).then((value)  {
+              await _auth.signInWithCredential(credential).then((value) {
                 return value.user;
               });
             }
@@ -133,7 +133,9 @@ class UserRepository {
                 //En caso de que este enlazado con facebook
                 if (value.contains("facebook.com")) {
                   //Se realiza el inicio de sesion
-                  await _auth.signInWithCredential(authCredential).then((user) async {
+                  await _auth
+                      .signInWithCredential(authCredential)
+                      .then((user) async {
                     return user.user;
                   });
                 }
@@ -224,9 +226,12 @@ class UserRepository {
         throw ('No se encuentra autorizado para realizar esta accion.');
       else if (exception.message.contains('Network'))
         throw ('Por favor revise su conexion a internet e intentelo de nuevo');
+      else if (exception.message.contains("unusual activity"))
+        throw ('Hemos bloqueado todas las solicitudes de este dispositivo debido a una actividad inusual. Inténtalo de nuevo más tarde.');
       else
         throw ('Algo salio mal, intente mas tarde.');
     };
+
     //Metodo de firebase que hace la solicitud de verificacion con numero de telefono
     await _auth.verifyPhoneNumber(
       phoneNumber: phone,
@@ -348,7 +353,7 @@ class UserRepository {
       throw (e.code);
     });
   }
-  
+
   Future<String> uploadImage(File foto) async {
     final StorageReference postImageRef =
         FirebaseStorage.instance.ref().child('Post Image');
@@ -358,5 +363,4 @@ class UserRepository {
     var url = await (await uploadTask.onComplete).ref.getDownloadURL();
     return url;
   }
-
 }

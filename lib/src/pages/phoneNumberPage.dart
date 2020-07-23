@@ -41,8 +41,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       print(verId);
       phoneVerificationId = verId;
       setState(() {
-        
-      sent = true;
+        sent = true;
       });
     };
     //En caso de que la verificacion sea exitosa
@@ -81,8 +80,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
             exception.message);
       else if (exception.message.contains('Network'))
         print('Por favor revise su conexion a internet e intentelo de nuevo');
+      else if (exception.message.contains("unusual activity"))
+        print(exception.message);
       else
-        print('Algo salio mal, intente mas tarde.');
+        print('Algo salio mal, intente mas tarde aca.');
     };
     //Metodo de firebase que hace la solicitud de verificacion con numero de telefono
     await _auth.verifyPhoneNumber(
@@ -204,144 +205,150 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
           sent = true;
         }
       },
-      child: BlocBuilder<LoginBloc, LoginState>(builder: (context, state) {
-        return sent
-            ? smsBuild(context)
-            : SingleChildScrollView(
-                controller: _scrollController,
-                child: Container(
-                  height: MediaQuery.of(context).size.height,
-                  child: Stack(
-                    children: <Widget>[
-                      CreateBackground().createBigBackground(context),
-                      Positioned(
-                        top: MediaQuery.of(context).size.height * 0.5,
-                        left: MediaQuery.of(context).size.width * 0.08,
-                        child: Text(
-                          "Ingresar con tu celular",
-                          style: TextStyle(fontSize: 24, color: Colors.black54),
-                        ),
-                      ),
-                      Theme(
-                        data: ThemeData(
-                            primaryColor: Colors.green,
-                            hintColor: Colors.grey[800]),
-                        child: Positioned(
-                          top: MediaQuery.of(context).size.height * 0.55,
+      child: BlocBuilder<LoginBloc, LoginState>(
+        builder: (context, state) {
+          print(state);
+          return sent
+              ? smsBuild(context)
+              : SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height,
+                    child: Stack(
+                      children: <Widget>[
+                        CreateBackground().createBigBackground(context),
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.5,
                           left: MediaQuery.of(context).size.width * 0.08,
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            width: MediaQuery.of(context).size.width * 0.85,
-                            child: TextFormField(
-                              inputFormatters: [maskFormater],
-                              controller: _phoneController,
-                              keyboardType: TextInputType.number,
-                              onTap: () {
-                                _scrollController.animateTo(
-                                    (MediaQuery.of(context).size.height * 0.34),
-                                    curve: Curves.fastOutSlowIn,
-                                    duration: Duration(milliseconds: 1600));
-                              },
-                              autocorrect: false,
-                              autovalidate: true,
-                              validator: (_) {
-                                return !state.isValidPhone
-                                    ? 'Numero invalido'
-                                    : null;
-                              },
-                              decoration: InputDecoration(
-                                icon: CountryPicker(
-                                  showDialingCode: true,
-                                  showName: false,
-                                  onChanged: (Country country) {
-                                    setState(() {
-                                      _countrySelected = country;
-                                    });
-                                  },
-                                  selectedCountry: _countrySelected,
-                                ),
-                                labelText: 'Escribe tu número',
-                                hintText: "123-456-7890",
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.green),
-                                  borderRadius: const BorderRadius.all(
-                                    const Radius.circular(32.0),
+                          child: Text(
+                            "Ingresar con tu celular",
+                            style:
+                                TextStyle(fontSize: 24, color: Colors.black54),
+                          ),
+                        ),
+                        Theme(
+                          data: ThemeData(
+                              primaryColor: Colors.green,
+                              hintColor: Colors.grey[800]),
+                          child: Positioned(
+                            top: MediaQuery.of(context).size.height * 0.55,
+                            left: MediaQuery.of(context).size.width * 0.08,
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              width: MediaQuery.of(context).size.width * 0.85,
+                              child: TextFormField(
+                                inputFormatters: [maskFormater],
+                                controller: _phoneController,
+                                keyboardType: TextInputType.number,
+                                onTap: () {
+                                  _scrollController.animateTo(
+                                      (MediaQuery.of(context).size.height *
+                                          0.34),
+                                      curve: Curves.fastOutSlowIn,
+                                      duration: Duration(milliseconds: 1600));
+                                },
+                                autocorrect: false,
+                                autovalidate: true,
+                                validator: (_) {
+                                  return !state.isValidPhone
+                                      ? 'Numero invalido'
+                                      : null;
+                                },
+                                decoration: InputDecoration(
+                                  icon: CountryPicker(
+                                    showDialingCode: true,
+                                    showName: false,
+                                    onChanged: (Country country) {
+                                      setState(() {
+                                        _countrySelected = country;
+                                      });
+                                    },
+                                    selectedCountry: _countrySelected,
                                   ),
+                                  labelText: 'Escribe tu número',
+                                  hintText: "123-456-7890",
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.green),
+                                    borderRadius: const BorderRadius.all(
+                                      const Radius.circular(32.0),
+                                    ),
+                                  ),
+                                  filled: true,
+                                  hintStyle: TextStyle(color: Colors.grey[800]),
+                                  fillColor: Colors.white70,
                                 ),
-                                filled: true,
-                                hintStyle: TextStyle(color: Colors.grey[800]),
-                                fillColor: Colors.white70,
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: MediaQuery.of(context).size.height * 0.65,
-                        left: MediaQuery.of(context).size.width * 0.16,
-                        right: MediaQuery.of(context).size.width * 0.16,
-                        child: RaisedButton(
-                          color: Colors.green,
-                          textColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.65,
+                          left: MediaQuery.of(context).size.width * 0.16,
+                          right: MediaQuery.of(context).size.width * 0.16,
+                          child: RaisedButton(
+                            color: Colors.green,
+                            textColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 40, vertical: 16),
+                              child: Text(
+                                "Verificar",
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            onPressed: isLoginButtonEnable(state)
+                                ? _onFormSubmitted
+                                : null,
                           ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 40, vertical: 16),
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.74,
+                          left: MediaQuery.of(context).size.width * 0.34,
+                          right: MediaQuery.of(context).size.width * 0.16,
+                          child: GestureDetector(
+                            onTap: () {
+                              BlocProvider.of<AuthenticationBloc>(context)
+                                  .add(OtherMethods());
+                            },
                             child: Text(
-                              "Verificar",
-                              style: TextStyle(fontSize: 24),
+                              "Ingresar con otro metodo",
+                              style: TextStyle(color: Colors.green),
                             ),
                           ),
-                          onPressed: isLoginButtonEnable(state)
-                              ? _onFormSubmitted
-                              : null,
                         ),
-                      ),
-                      Positioned(
-                        top: MediaQuery.of(context).size.height * 0.74,
-                        left: MediaQuery.of(context).size.width * 0.34,
-                        right: MediaQuery.of(context).size.width * 0.16,
-                        child: GestureDetector(
-                          onTap: () {
-                            BlocProvider.of<AuthenticationBloc>(context).add(OtherMethods());
-                          },
-                          child: Text(
-                            "Ingresar con otro metodo",
-                            style: TextStyle(color: Colors.green),
+                        // +57 3004896661 @
+                        Positioned(
+                          left: MediaQuery.of(context).size.width * 0.05,
+                          bottom: MediaQuery.of(context).size.height * 0.02,
+                          child: Row(
+                            children: <Widget>[
+                              Checkbox(
+                                activeColor: Colors.green,
+                                checkColor: Colors.white,
+                                value: accept,
+                                onChanged: (value) {
+                                  setState(() {
+                                    accept = !accept;
+                                  });
+                                },
+                              ),
+                              Text(
+                                "Acepto terminos y condiciones",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w500),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      // +57 3004896661 @
-                      Positioned(
-                        left: MediaQuery.of(context).size.width * 0.05,
-                        bottom: MediaQuery.of(context).size.height * 0.02,
-                        child: Row(
-                          children: <Widget>[
-                            Checkbox(
-                              activeColor: Colors.green,
-                              checkColor: Colors.white,
-                              value: accept,
-                              onChanged: (value) {
-                                setState(() {
-                                  accept = !accept;
-                                });
-                              },
-                            ),
-                            Text(
-                              "Acepto terminos y condiciones",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-      }),
+                );
+        },
+      ),
     );
   }
 

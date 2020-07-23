@@ -12,21 +12,26 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   UserRepository _userRepository;
   LoginBloc({@required UserRepository userRepository})
       : assert(userRepository != null),
-        _userRepository = userRepository;
-  @override
-  LoginState get initialState => LoginState.empty();
+        _userRepository = userRepository,
+        super(LoginState.empty());
 
   @override
-  Stream<LoginState> transformEvents(
-      Stream<LoginEvent> events, Stream<LoginState> Function(LoginEvent) next) {
+  Stream<Transition<LoginEvent, LoginState>> transformEvents(
+    Stream<LoginEvent> events,
+    TransitionFunction<LoginEvent, LoginState> transitionFn,
+  ) {
     final nonDebounceStream = events.where((event) {
       return (event is! EmailChanged && event is! PasswordChanged);
     });
+
     final debounceStream = events.where((event) {
       return (event is EmailChanged || event is PasswordChanged);
     }).debounceTime(Duration(milliseconds: 300));
-    return super
-        .transformEvents(nonDebounceStream.mergeWith([debounceStream]), next);
+
+    return super.transformEvents(
+      nonDebounceStream.mergeWith([debounceStream]),
+      transitionFn,
+    );
   }
 
   @override
@@ -43,7 +48,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       yield* _mapPasswordChangedToState(event.password);
     }
     if (event is LoginWithPhone) {
-      yield* _mapLoginWithPhone(phoneNumber: event.phoneNumber,context: event.context);
+      yield* _mapLoginWithPhone(
+          phoneNumber: event.phoneNumber, context: event.context);
     }
     if (event is LoginWithPhoneSucces) {
       yield* _mapLoginWithPhoneSuccess();
@@ -54,7 +60,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
     if (event is SignUpWithEmailAndPassowrd) {
       yield* _mapSignUpWithEmailAndPassowrd(
-          email: event.email, password: event.password,userinfo:event.userinfo);
+          email: event.email,
+          password: event.password,
+          userinfo: event.userinfo);
     }
     if (event is LoginWithGoogle) {
       yield* _mapLoginWithGoogleToState();
@@ -76,8 +84,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     yield state.update(isPasswordValid: Validators.isValidPassword(password));
   }
 
-  Stream<LoginState> _mapLoginWithPhone({String phoneNumber,BuildContext context}) async* {
-    yield LoginState.loading(); 
+  Stream<LoginState> _mapLoginWithPhone(
+      {String phoneNumber, BuildContext context}) async* {
+    yield LoginState.loading();
     try {
       yield LoginState.success();
     } catch (e) {
@@ -85,6 +94,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       yield LoginState.failure();
     }
   }
+
   Stream<LoginState> _mapLoginWithEmailAndPasswordToState(
       {String email, String password}) async* {
     yield LoginState.loading();
@@ -97,10 +107,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   Stream<LoginState> _mapSignUpWithEmailAndPassowrd(
-      {String email, String password,UserUpdateInfo userinfo}) async* {
+      {String email, String password, UserUpdateInfo userinfo}) async* {
     yield LoginState.loading();
     try {
-      await _userRepository.signUpWithEmail(email, password,userinfo);
+      await _userRepository.signUpWithEmail(email, password, userinfo);
       yield LoginState.success();
     } catch (_) {
       yield LoginState.failure();
@@ -126,7 +136,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       yield LoginState.failure();
     }
   }
-  
+
   Stream<LoginState> _mapLoginWithPhoneSuccess() async* {
     try {
       yield LoginState.success();

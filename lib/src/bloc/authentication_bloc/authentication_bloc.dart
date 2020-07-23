@@ -9,7 +9,8 @@ class AuthenticationBloc
   final UserRepository _userRepository;
   AuthenticationBloc({@required UserRepository userRepository})
       : assert(userRepository != null),
-        _userRepository = userRepository;
+        _userRepository = userRepository,
+        super(null);
   @override
   AuthenticationState get initialState => Uninitialized();
 
@@ -20,7 +21,7 @@ class AuthenticationBloc
       yield* _mapAppStartedToState();
     }
     if (event is LoggedIn) {
-      yield*  _mapLoggedInToState();
+      yield* _mapLoggedInToState();
     }
     if (event is LoggedInWithOutEmail) {
       yield* _mapLoggedInWithOutEmailToState();
@@ -28,7 +29,7 @@ class AuthenticationBloc
     if (event is LoggedOut) {
       yield* _mapLoggedOutToState();
     }
-    if(event is OtherMethods){
+    if (event is OtherMethods) {
       yield* _mapOtherMethodsToState();
     }
   }
@@ -63,8 +64,7 @@ class AuthenticationBloc
   Stream<AuthenticationState> _mapLoggedOutToState() async* {
     yield Unauthenticated();
   }
-  
-  
+
   Stream<AuthenticationState> _mapOtherMethodsToState() async* {
     yield OtherMethodsState();
   }

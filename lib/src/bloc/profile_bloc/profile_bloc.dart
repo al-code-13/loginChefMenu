@@ -25,7 +25,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         name = user.displayName,
         photoUrl = user.photoUrl,
         email = user.email,
-        phoneNumber = user.phoneNumber;
+        phoneNumber = user.phoneNumber,
+        super(null);
   @override
   ProfileState get initialState => ProfileInitial();
 
@@ -61,7 +62,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (event is TakePhotoActionSuccess) {
       yield* _mapTakePhotoActionSuccessToState(event.foto);
     }
-     if (event is TakePhotoActionDissmis) {
+    if (event is TakePhotoActionDissmis) {
       yield TakePhotoActionDissmisState();
     }
     if (event is UpdateUserProfile) {
@@ -107,16 +108,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     yield Loading();
     if (newname != null) {
       updateinfo.displayName = newname;
+    } else {
+      updateinfo.displayName = name;
     }
     if (foto != null) {
       updateinfo.photoUrl = await _userRepository.uploadImage(foto);
+    } else {
+      updateinfo.photoUrl = photoUrl;
     }
     try {
       await _userRepository.updateUser(updateinfo);
       name = updateinfo.displayName;
       photoUrl = updateinfo.photoUrl;
       fotoPerfil = foto;
-      print(name + "===========================================" + photoUrl);
+      print(name + "=======================x====================" + photoUrl);
       yield Success();
     } catch (e) {
       yield Failure(message: e.toString());
