@@ -11,7 +11,6 @@ class AuthenticationBloc
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(null);
-  @override
   AuthenticationState get initialState => Uninitialized();
 
   @override
@@ -54,7 +53,11 @@ class AuthenticationBloc
 
   Stream<AuthenticationState> _mapLoggedInToState() async* {
     FirebaseUser user = await _userRepository.getUser();
-    yield Authenticated(user: user);
+    if (user != null) {
+      yield Authenticated(user: user);
+    } else {
+      Unauthenticated();
+    }
   }
 
   Stream<AuthenticationState> _mapLoggedInWithOutEmailToState() async* {

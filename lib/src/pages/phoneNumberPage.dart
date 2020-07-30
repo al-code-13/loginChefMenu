@@ -46,6 +46,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     };
     //En caso de que la verificacion sea exitosa
     final PhoneVerificationCompleted verifiedSuccess = (AuthCredential auth) {
+      // ignore: missing_return
       _auth.signInWithCredential(auth).then((value) {
         //Se verifica que la respuesta sea positiva
         if (value.user != null) {
@@ -120,7 +121,6 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
 
   final TextEditingController _phoneController = TextEditingController();
   LoginBloc _loginBloc;
-  UserRepository get _userRepository => widget._userRepository;
   ScrollController _scrollController = ScrollController();
   Country _countrySelected;
   MaskTextInputFormatter maskFormater =
@@ -161,7 +161,10 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
   }
 
   bool isLoginButtonEnable(LoginState state) {
-    return state.isValidPhone && accept;
+    if (state is RegistringWithPhone) {
+      return state.isValidPhone && accept;
+    }
+    else return false;
   }
 
   bool accept = false;
@@ -170,7 +173,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         //tres casos
-        if (state.isFailure) {
+        if (state is Failure) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -186,7 +189,7 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
               ),
             );
         }
-        if (state.isSubmitting) {
+        if (state is Loading) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -201,13 +204,12 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
               ),
             );
         }
-        if (state.isSuccess) {
+        if (state is Success) {
           sent = true;
         }
       },
       child: BlocBuilder<LoginBloc, LoginState>(
         builder: (context, state) {
-          print(state);
           return sent
               ? smsBuild(context)
               : SingleChildScrollView(
@@ -250,9 +252,11 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                                 autocorrect: false,
                                 autovalidate: true,
                                 validator: (_) {
-                                  return !state.isValidPhone
-                                      ? 'Numero invalido'
-                                      : null;
+                                  if (state is RegistringWithPhone) {
+                                    return !state.isValidPhone
+                                        ? 'Numero invalido'
+                                        : null;
+                                  }
                                 },
                                 decoration: InputDecoration(
                                   icon: CountryPicker(

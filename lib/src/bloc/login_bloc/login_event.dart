@@ -22,26 +22,16 @@ class PhoneChanged extends LoginEvent {
 }
 
 //Email Changed
-class EmailChanged extends LoginEvent {
+class EmailorPasswordChanged extends LoginEvent {
   final String email;
-  const EmailChanged({@required this.email});
-  @override
-  List<Object> get props => [email];
-  @override
-  String toString() {
-    return 'EmailChanged {email:$email}';
-  }
-}
-
-//Password changed
-class PasswordChanged extends LoginEvent {
   final String password;
-  const PasswordChanged({@required this.password});
+  const EmailorPasswordChanged({@required this.email,@required this.password});
+  
   @override
-  List<Object> get props => [password];
+  List<Object> get props => [email,password];
   @override
   String toString() {
-    return 'PasswordChanged {Password:$password}';
+    return 'EmailorPasswordChanged {email:$email,password:$password}';
   }
 }
 

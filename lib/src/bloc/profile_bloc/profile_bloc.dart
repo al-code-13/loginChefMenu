@@ -27,7 +27,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         email = user.email,
         phoneNumber = user.phoneNumber,
         super(null);
-  @override
   ProfileState get initialState => ProfileInitial();
 
   @override

@@ -25,8 +25,8 @@ class _OtherMethodsState extends State<OtherMethods> {
 
   bool get isPopulated =>
       _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
-  bool isLoginButtonEnable(LoginState state) {
-    return state.isFormValid && isPopulated && !state.isSubmitting;
+  bool isLoginButtonEnable(Registring state) {
+    return state.isValidEmail && state.isValidPassword && isPopulated ;
   }
 
   ScrollController _scrollController = ScrollController();
@@ -51,11 +51,13 @@ class _OtherMethodsState extends State<OtherMethods> {
   }
 
   void _onEmailChanged() {
-    _loginBloc.add(EmailChanged(email: _emailController.text));
+    _loginBloc.add(EmailorPasswordChanged(
+        email: _emailController.text, password: _passwordController.text));
   }
 
   void _onPasswordChanged() {
-    _loginBloc.add(PasswordChanged(password: _passwordController.text));
+    _loginBloc.add(EmailorPasswordChanged(
+        email: _emailController.text, password: _passwordController.text));
   }
 
   void _onFormSubmitted() {
@@ -68,7 +70,7 @@ class _OtherMethodsState extends State<OtherMethods> {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         //tres casos
-        if (state.isFailure) {
+        if (state is Failure) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -84,7 +86,7 @@ class _OtherMethodsState extends State<OtherMethods> {
               ),
             );
         }
-        if (state.isSubmitting) {
+        if (state is Loading) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -99,248 +101,255 @@ class _OtherMethodsState extends State<OtherMethods> {
               ),
             );
         }
-        if (state.isSuccess) {
+        if (state is Success) {
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
         }
       },
       child: BlocBuilder<LoginBloc, LoginState>(
         builder: (context, state) {
-          return SingleChildScrollView(
-            controller: _scrollController,
-            child: Container(
-              height: MediaQuery.of(context).size.height,
-              child: Stack(
-                children: <Widget>[
-                  CreateBackground().createBigBackground(context),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.45,
-                    left: MediaQuery.of(context).size.width * 0.05,
-                    child: Row(
-                      children: <Widget>[
-                        GestureDetector(
-                          onTap: () {
-                            BlocProvider.of<AuthenticationBloc>(context)
-                                .add(LoggedOut());
-                          },
-                          child: Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.black54,
+          if (state is Registring) {
+            return SingleChildScrollView(
+              controller: _scrollController,
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                child: Stack(
+                  children: <Widget>[
+                    CreateBackground().createBigBackground(context),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.45,
+                      left: MediaQuery.of(context).size.width * 0.05,
+                      child: Row(
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () {
+                              BlocProvider.of<AuthenticationBloc>(context)
+                                  .add(LoggedOut());
+                            },
+                            child: Icon(
+                              Icons.arrow_back_ios,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            "Bienvenido de nuevo",
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54),
+                          )
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: MediaQuery.of(context).size.width * 0.08,
+                      top: MediaQuery.of(context).size.height * 0.5,
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: Theme(
+                          data: ThemeData(
+                            primaryColor: Colors.green,
+                            hintColor: Colors.grey[800],
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              TextFormField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  icon: Icon(
+                                    Icons.mail_outline,
+                                  ),
+                                  labelText: 'Correo Electronico',
+                                  hintText: "example@example.ex",
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.green),
+                                    borderRadius: const BorderRadius.all(
+                                      const Radius.circular(32.0),
+                                    ),
+                                  ),
+                                  filled: true,
+                                  hintStyle: TextStyle(color: Colors.grey[800]),
+                                  fillColor: Colors.white70,
+                                ),
+                                autocorrect: false,
+                                autovalidate: true,
+                                validator: (_) {
+                                  return !state.isValidEmail
+                                      ? 'Correo invalido'
+                                      : null;
+                                },
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              TextFormField(
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                  icon: Icon(Icons.lock_outline),
+                                  labelText: 'Contraseña',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.green),
+                                    borderRadius: const BorderRadius.all(
+                                      const Radius.circular(32.0),
+                                    ),
+                                  ),
+                                  filled: true,
+                                  hintStyle: TextStyle(color: Colors.grey[800]),
+                                  fillColor: Colors.white70,
+                                ),
+                                obscureText: true,
+                                autovalidate: true,
+                                autocorrect: false,
+                                validator: (_) {
+                                  return !state.isValidPassword
+                                      ? 'Contraseña invalida'
+                                      : null;
+                                },
+                              ),
+                              SizedBox(
+                                height: 8,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text(
+                                              "Enviaremos un correo de verificacion"),
+                                          content: Form(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: <Widget>[
+                                                Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child: TextFormField(
+                                                    controller:
+                                                        _emailController,
+                                                    keyboardType: TextInputType
+                                                        .emailAddress,
+                                                    decoration: InputDecoration(
+                                                      icon: Icon(
+                                                        Icons.mail_outline,
+                                                      ),
+                                                      labelText:
+                                                          'Correo Electronico',
+                                                      hintText:
+                                                          "example@example.ex",
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color:
+                                                                Colors.green),
+                                                        borderRadius:
+                                                            const BorderRadius
+                                                                .all(
+                                                          const Radius.circular(
+                                                              32.0),
+                                                        ),
+                                                      ),
+                                                      filled: true,
+                                                      hintStyle: TextStyle(
+                                                          color:
+                                                              Colors.grey[800]),
+                                                      fillColor: Colors.white70,
+                                                    ),
+                                                    autocorrect: false,
+                                                    autovalidate: true,
+                                                    validator: (_) {
+                                                      return !state.isValidEmail
+                                                          ? 'Correo invalido'
+                                                          : null;
+                                                    },
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: RaisedButton(
+                                                    child: Text("Aceptar"),
+                                                    onPressed: () {
+                                                      if (_emailController
+                                                          .text.isNotEmpty) {
+                                                        _userRepository
+                                                            .forgotPassword(
+                                                                _emailController
+                                                                    .text);
+                                                      }
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                },
+                                child: Text(
+                                  "Olvide mi contraseña",
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                        Text(
-                          "Bienvenido de nuevo",
-                          style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54),
-                        )
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    left: MediaQuery.of(context).size.width * 0.08,
-                    top: MediaQuery.of(context).size.height * 0.5,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: Theme(
-                        data: ThemeData(
-                          primaryColor: Colors.green,
-                          hintColor: Colors.grey[800],
-                        ),
-                        child: Column(
-                          children: <Widget>[
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                icon: Icon(
-                                  Icons.mail_outline,
-                                ),
-                                labelText: 'Correo Electronico',
-                                hintText: "example@example.ex",
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.green),
-                                  borderRadius: const BorderRadius.all(
-                                    const Radius.circular(32.0),
-                                  ),
-                                ),
-                                filled: true,
-                                hintStyle: TextStyle(color: Colors.grey[800]),
-                                fillColor: Colors.white70,
-                              ),
-                              autocorrect: false,
-                              autovalidate: true,
-                              validator: (_) {
-                                return !state.isEmailValid
-                                    ? 'Correo invalido'
-                                    : null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            TextFormField(
-                              controller: _passwordController,
-                              decoration: InputDecoration(
-                                icon: Icon(Icons.lock_outline),
-                                labelText: 'Contraseña',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.green),
-                                  borderRadius: const BorderRadius.all(
-                                    const Radius.circular(32.0),
-                                  ),
-                                ),
-                                filled: true,
-                                hintStyle: TextStyle(color: Colors.grey[800]),
-                                fillColor: Colors.white70,
-                              ),
-                              obscureText: true,
-                              autovalidate: true,
-                              autocorrect: false,
-                              validator: (_) {
-                                return !state.isPasswordValid
-                                    ? 'Contraseña invalida'
-                                    : null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 8,
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text(
-                                            "Enviaremos un correo de verificacion"),
-                                        content: Form(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: <Widget>[
-                                              Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: TextFormField(
-                                                  controller: _emailController,
-                                                  keyboardType: TextInputType
-                                                      .emailAddress,
-                                                  decoration: InputDecoration(
-                                                    icon: Icon(
-                                                      Icons.mail_outline,
-                                                    ),
-                                                    labelText:
-                                                        'Correo Electronico',
-                                                    hintText:
-                                                        "example@example.ex",
-                                                    border: OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          color: Colors.green),
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                              .all(
-                                                        const Radius.circular(
-                                                            32.0),
-                                                      ),
-                                                    ),
-                                                    filled: true,
-                                                    hintStyle: TextStyle(
-                                                        color:
-                                                            Colors.grey[800]),
-                                                    fillColor: Colors.white70,
-                                                  ),
-                                                  autocorrect: false,
-                                                  autovalidate: true,
-                                                  validator: (_) {
-                                                    return !state.isEmailValid
-                                                        ? 'Correo invalido'
-                                                        : null;
-                                                  },
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: RaisedButton(
-                                                  child: Text("Aceptar"),
-                                                  onPressed: () {
-                                                    if (_emailController
-                                                        .text.isNotEmpty) {
-                                                      _userRepository
-                                                          .forgotPassword(
-                                                              _emailController
-                                                                  .text);
-                                                    }
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    });
-                              },
-                              child: Text(
-                                "Olvide mi contraseña",
-                              ),
-                            )
-                          ],
-                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.72,
-                    left: MediaQuery.of(context).size.width * 0.16,
-                    right: MediaQuery.of(context).size.width * 0.16,
-                    child: RaisedButton(
-                      color: Colors.green,
-                      textColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.72,
+                      left: MediaQuery.of(context).size.width * 0.16,
+                      right: MediaQuery.of(context).size.width * 0.16,
+                      child: RaisedButton(
+                        color: Colors.green,
+                        textColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 16),
+                          child: Text(
+                            "Continuar",
+                            style: TextStyle(fontSize: 24),
+                          ),
+                        ),
+                        onPressed: isLoginButtonEnable(state)
+                            ? _onFormSubmitted
+                            : null,
                       ),
-                      child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                        child: Text(
-                          "Continuar",
-                          style: TextStyle(fontSize: 24),
-                        ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.83,
+                      left: MediaQuery.of(context).size.width * 0.12,
+                      right: MediaQuery.of(context).size.width * 0.12,
+                      child: Column(
+                        children: <Widget>[
+                          FacebookSignInButton(
+                            borderRadius: 5,
+                            onPressed: () {
+                              BlocProvider.of<LoginBloc>(context)
+                                  .add(LoginWithFacebook());
+                            },
+                            text: "Continuar con Facebook",
+                          ),
+                          GoogleSignInButton(
+                            borderRadius: 5,
+                            onPressed: () {
+                              BlocProvider.of<LoginBloc>(context)
+                                  .add(LoginWithGoogle());
+                            },
+                            text: "   Continuar con Google   ",
+                          ),
+                        ],
                       ),
-                      onPressed:
-                          isLoginButtonEnable(state) ? _onFormSubmitted : null,
                     ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.83,
-                    left: MediaQuery.of(context).size.width * 0.12,
-                    right: MediaQuery.of(context).size.width * 0.12,
-                    child: Column(
-                      children: <Widget>[
-                        FacebookSignInButton(
-                          borderRadius: 5,
-                          onPressed: () {
-                            BlocProvider.of<LoginBloc>(context)
-                                .add(LoginWithFacebook());
-                          },
-                          text: "Continuar con Facebook",
-                        ),
-                        GoogleSignInButton(
-                          borderRadius: 5,
-                          onPressed: () {
-                            BlocProvider.of<LoginBloc>(context)
-                                .add(LoginWithGoogle());
-                          },
-                          text: "   Continuar con Google   ",
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
       ),
     );

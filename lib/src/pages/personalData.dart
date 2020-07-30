@@ -33,8 +33,8 @@ class _PersonalDataState extends State<PersonalData> {
       name != null &&
       foto != null;
 
-  bool isLoginButtonEnable(LoginState state) {
-    return state.isFormValid && isPopulated && !state.isSubmitting;
+  bool isLoginButtonEnable(Registring state) {
+    return state.isValidEmail &&state.isValidPassword && isPopulated;
   }
 
   @override
@@ -53,11 +53,11 @@ class _PersonalDataState extends State<PersonalData> {
   }
 
   void _onEmailChanged() {
-    _loginBloc.add(EmailChanged(email: _emailController.text));
+    _loginBloc.add(EmailorPasswordChanged(email: _emailController.text,password: _passwordController.text));
   }
 
   void _onPasswordChanged() {
-    _loginBloc.add(PasswordChanged(password: _passwordController.text));
+    _loginBloc.add(EmailorPasswordChanged(email: _emailController.text,password: _passwordController.text));
   }
 
   void _onFormSubmitted() async {
@@ -104,7 +104,7 @@ class _PersonalDataState extends State<PersonalData> {
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
-        if (state.isFailure) {
+        if (state is Failure) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -120,7 +120,7 @@ class _PersonalDataState extends State<PersonalData> {
               ),
             );
         }
-        if (state.isSubmitting) {
+        if (state is Loading) {
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -135,12 +135,14 @@ class _PersonalDataState extends State<PersonalData> {
               ),
             );
         }
-        if (state.isSuccess) {
+        if (state is Success) {
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
         }
       },
       child: BlocBuilder<LoginBloc, LoginState>(
+        // ignore: missing_return
         builder: (context, state) {
+          if(state is Registring){
           return SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height,
@@ -271,7 +273,7 @@ class _PersonalDataState extends State<PersonalData> {
                               autocorrect: false,
                               autovalidate: true,
                               validator: (_) {
-                                return !state.isEmailValid
+                                return !state.isValidEmail
                                     ? 'Correo invalido'
                                     : null;
                               },
@@ -301,7 +303,7 @@ class _PersonalDataState extends State<PersonalData> {
                               autovalidate: true,
                               autocorrect: false,
                               validator: (_) {
-                                return !state.isPasswordValid
+                                return !state.isValidPassword
                                     ? 'Invalid Password'
                                     : null;
                               },
@@ -336,7 +338,7 @@ class _PersonalDataState extends State<PersonalData> {
                 ],
               ),
             ),
-          );
+          );}
         },
       ),
     );

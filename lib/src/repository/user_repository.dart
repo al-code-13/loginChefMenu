@@ -25,68 +25,11 @@ class UserRepository {
         _facebookLogin = facebookLogin ?? FacebookLogin();
 
   //SignInWithGoogle
-  Future<FirebaseUser> signInWithGoogle() async {
+  Future<GoogleSignInAccount> signInWithGoogle() async {
     //Utilizar el metodod de google para obtener el usuario del pop up
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    return googleUser;
     //autenticacion de inicio de sesion
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-    //obtener credenciales del proveedor de google
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    //Validar si existe un usuario autenticado
-    _auth.currentUser().then((value) async {
-      //En caso de que este intentando vincular la cuenta
-      if (value != null) {
-        //en caso de que el email que intenta vincular sea el mismo que ya esta dentro
-        if (googleUser.email == value.email) {
-          //enlace de las cuentas (requiere de un inicio de sesion reciente)
-          await value.linkWithCredential(credential).then((value) {
-            //Aqui debe mostrar la alerta de que todo fue exitoso
-            print(
-              "Cuenta vinculada exitosamente.",
-            );
-            return _auth.currentUser();
-          })
-              //Aqui debe informar al usuario que se produjo un error
-              .catchError((e) {
-            throw (e.code);
-          });
-        }
-        //en caso de que el email no sea el mismo
-        else {
-          throw ("El corrreo no coincide.");
-        }
-      }
-      //En caso que desee iniciar sesion con la cuenta
-      else {
-        //Es necesario validar si el email ya existe con el fin de evitar que google sobrescriba las cuentas
-        _auth
-            .fetchSignInMethodsForEmail(email: googleUser.email)
-            .then((value) async {
-          //En caso de que si este vinculada anteriormente
-          if (value != null && value.length > 0) {
-            //En caso de que el email este vinculado, validar que este vinculado con google
-            if (value.contains("google.com")) {
-              //En caso de que sea exitoso (Se debe informar al usuario) todo
-              await _auth.signInWithCredential(credential).then((value) {
-                return value.user;
-              });
-            }
-            //En caso de que el correo este vinculado pero no con la cuenta de google  (Se debe informar al usuario) todo
-            else {
-              throw ("Este correo ya se encuentra registrado, debes iniciar sesion para vincularlo con google");
-            }
-          }
-          //En caso de que no este vinculada se debe evitar que se sobrescriba  (Se debe informar al usuario) todo
-          else {
-            throw ("Debes registrarte primero");
-          }
-        });
-      }
-    });
   }
 
   //SignInWithFacebook
